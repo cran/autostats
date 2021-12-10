@@ -2,39 +2,27 @@
 % Please edit documentation in R/tidy_ctree.R
 \name{tidy_ctree}
 \alias{tidy_ctree}
-\alias{plot_ctree}
 \title{tidy ctree}
 \usage{
-tidy_ctree(.data, formula, ...)
-
-plot_ctree(ctree_obj, plot_type = c("sample", "box", "bar"))
+tidy_ctree(.data, formula, minbucket = 7L, mincriterion = 0.95, ...)
 }
 \arguments{
 \item{.data}{dataframe}
 
 \item{formula}{formula}
 
+\item{minbucket}{minimum amount of samples in terminal leaves, default is 7}
+
+\item{mincriterion}{(1 - alpha)   value between 0 -1, default is .95. lowering this value creates more splits, but less significant}
+
 \item{...}{optional parameters to \code{\link[party]{ctree_control}}}
-
-\item{ctree_obj}{output of tidy_ctree}
-
-\item{plot_type}{type of plot}
 }
 \value{
 a ctree object
-
-decision tree plot
 }
 \description{
-tidy conditional inference tree
-}
-\details{
-recommended parameters to control;
-
-\itemize{
-\item{\code{minbucket}}{ minimum amount of samples in terminal leaves, default is 7}
-\item{\code{mincriterion}}{(1 - alpha)   value between 0 -1, default is .95. lowering this value creates more splits, but less significant}
-}
+tidy conditional inference tree. Creates easily interpretable decision tree models that be shown with the \code{\link{visualize_model}} function.
+Statistical significance required for a split , and minimum necessary samples in a terminal leaf can be controlled to create the desired tree visual.
 }
 \examples{
 
@@ -43,11 +31,11 @@ tidy_formula(., Sepal.Length) -> sepal_form
 
 iris \%>\%
 tidy_ctree(sepal_form) \%>\%
-plot_ctree()
+visualize_model()
 
 iris \%>\%
 tidy_ctree(sepal_form, minbucket = 30) \%>\%
-plot_ctree
+visualize_model(plot_type = "box")
 
 
 }

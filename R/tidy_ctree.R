@@ -7,17 +7,14 @@
 
 #' tidy ctree
 #'
-#' tidy conditional inference tree
+#' tidy conditional inference tree. Creates easily interpretable decision tree models that be shown with the \code{\link{visualize_model}} function.
+#' Statistical significance required for a split , and minimum necessary samples in a terminal leaf can be controlled to create the desired tree visual.
 #'
-#' recommended parameters to control;
-#'
-#' \itemize{
-#' \item{\code{minbucket}}{ minimum amount of samples in terminal leaves, default is 7}
-#' \item{\code{mincriterion}}{(1 - alpha)   value between 0 -1, default is .95. lowering this value creates more splits, but less significant}
-#' }
 #'
 #' @param .data dataframe
 #' @param formula formula
+#' @param minbucket minimum amount of samples in terminal leaves, default is 7
+#' @param mincriterion (1 - alpha)   value between 0 -1, default is .95. lowering this value creates more splits, but less significant
 #' @param ... optional parameters to \code{\link[party]{ctree_control}}
 #'
 #' @return a ctree object
@@ -30,28 +27,27 @@
 #'
 #' iris %>%
 #' tidy_ctree(sepal_form) %>%
-#' plot_ctree()
+#' visualize_model()
 #'
 #' iris %>%
 #' tidy_ctree(sepal_form, minbucket = 30) %>%
-#' plot_ctree
+#' visualize_model(plot_type = "box")
 #'
 #'
-tidy_ctree <- function(.data, formula, ...){
+tidy_ctree <- function(.data, formula, minbucket = 7L, mincriterion = .95, ...){
 
 party::ctree(formula = formula,
              data = .data,
-      controls =  party::ctree_control(...))
+      controls =  party::ctree_control(..., minbucket = minbucket, mincriterion = mincriterion))
 }
 
 #' plot ctree
 #'
-#' @rdname tidy_ctree
 #' @param ctree_obj output of tidy_ctree
 #' @param plot_type type of plot
+#' @keywords internal
 #'
 #' @return decision tree plot
-#' @export
 plot_ctree <- function(ctree_obj, plot_type = c("sample", "box", "bar")){
 
 plot_type <- match.arg(plot_type)

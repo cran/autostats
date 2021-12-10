@@ -9,7 +9,11 @@ auto_cor(
   ...,
   use = c("pairwise.complete.obs", "all.obs", "complete.obs", "everything",
     "na.or.complete"),
-  method = c("pearson", "kendall", "spearman")
+  method = c("pearson", "kendall", "spearman"),
+  include_nominals = TRUE,
+  max_levels = 5L,
+  sparse = TRUE,
+  pval_thresh = 0.1
 )
 }
 \arguments{
@@ -20,6 +24,14 @@ auto_cor(
 \item{use}{method to deal with na. Default is to remove rows with NA}
 
 \item{method}{correlation method}
+
+\item{include_nominals}{logicals, default TRUE. Dummify nominal variables?}
+
+\item{max_levels}{maximum numbers of dummmies to be created from nominal variables}
+
+\item{sparse}{logical, default TRUE. Filters and arranges cor table}
+
+\item{pval_thresh}{threshold to filter out weak correlations}
 }
 \value{
 data frame of correlations
@@ -32,4 +44,9 @@ Additional parameters for the correlation test can be specified as in \code{\lin
 
 iris \%>\%
 auto_cor()
+
+# don't use sparse if you're interested in only one target variable
+iris \%>\%
+auto_cor(sparse = FALSE) \%>\%
+dplyr::filter(x == "Petal.Length")
 }

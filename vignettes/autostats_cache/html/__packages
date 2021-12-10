@@ -1,4 +1,6 @@
 base
+broom
+broom.mixed
 autostats
 tune
 dplyr
@@ -17,5 +19,3 @@ vctrs
 xgboost
 Matrix
 glmnet
-broom
-broom.mixed

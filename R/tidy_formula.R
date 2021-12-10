@@ -63,6 +63,7 @@ tidy_formula <- function(data, target, ...){
 #'
 #' @param f formula
 #' @param include_lhs FALSE. If TRUE, appends lhs to beginning of vector
+#' @param .data dataframe for names if necessary
 #'
 #' @return chr vector
 #' @export
@@ -76,16 +77,31 @@ tidy_formula <- function(data, target, ...){
 #'
 #' f %>%
 #' f_formula_to_charvec()
-f_formula_to_charvec <- function(f, include_lhs = FALSE){
+f_formula_to_charvec <- function(f, include_lhs = FALSE, .data = NULL){
 
   f %>%
     rlang::f_lhs() %>%
     as.character() -> lhs
 
+
+
   f %>%
     rlang::f_text() %>%
-    stringr::str_split(pattern = stringr::boundary("word"), simplify = T) %>%
+    enc2utf8() %>%
+    stringr::str_split(pattern = "\\+ ", simplify = T) %>%
+    stringr::str_remove("\n") %>%
+    trimws() %>%
     as.vector() -> form
+
+  f %>%
+    rlang::f_rhs() -> rhs
+
+  if(!is.null(.data) &rhs == "."){
+
+    .data %>%
+      names() %>%
+      setdiff(lhs) -> form
+  }
 
   if(include_lhs){
 

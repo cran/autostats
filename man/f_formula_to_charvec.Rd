@@ -4,12 +4,14 @@
 \alias{f_formula_to_charvec}
 \title{Formula_rhs to chr vec}
 \usage{
-f_formula_to_charvec(f, include_lhs = FALSE)
+f_formula_to_charvec(f, include_lhs = FALSE, .data = NULL)
 }
 \arguments{
 \item{f}{formula}
 
 \item{include_lhs}{FALSE. If TRUE, appends lhs to beginning of vector}
+
+\item{.data}{dataframe for names if necessary}
 }
 \value{
 chr vector
