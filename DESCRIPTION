@@ -1,7 +1,7 @@
 Package: autostats
 Type: Package
 Title: Auto Stats
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: 
     person(given = "Harrison",
            family = "Tietze",
@@ -13,10 +13,10 @@ Encoding: UTF-8
 Imports: dplyr, stringr, tidyselect, purrr, janitor, tibble, rlang,
         stats, rlist, broom, broom.mixed, magrittr, Matrix, ggeasy,
         ggplot2, jtools, gtools, ggthemes, patchwork, tidyr, xgboost,
-        flextable, nnet, parsnip, recipes, rsample, hardhat, tune,
-        workflows, forcats, ggstance, Ckmeans.1d.dp, glmnet,
-        framecleaner, presenter, yardstick, BBmisc, dials, readr,
-        lubridate, party, agtboost
+        flextable, parsnip, recipes, rsample, hardhat, tune, workflows,
+        forcats, ggstance, framecleaner, presenter, yardstick, BBmisc,
+        dials, readr, lubridate, party, data.table, FOCI, XICOR,
+        agtboost, Ckmeans.1d.dp, glmnet, nnet
 RoxygenNote: 7.1.2
 URL: https://harrison4192.github.io/autostats/,
         https://github.com/Harrison4192/autostats
@@ -26,8 +26,8 @@ Suggests: knitr, rmarkdown, markdown, moreparty, parallel, doParallel,
 VignetteBuilder: knitr
 License: MIT + file LICENSE
 NeedsCompilation: no
-Packaged: 2021-12-10 08:43:44 UTC; Harrison
+Packaged: 2022-02-09 08:30:45 UTC; Harrison
 Author: Harrison Tietze [aut, cre]
 Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2021-12-10 09:30:02 UTC
+Date/Publication: 2022-02-09 08:50:02 UTC

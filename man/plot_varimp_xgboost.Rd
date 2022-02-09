@@ -4,16 +4,29 @@
 \alias{plot_varimp_xgboost}
 \title{Plot varimp xgboost}
 \usage{
-plot_varimp_xgboost(xgb, font = c("", "HiraKakuProN-W3"), top_n = 10, ...)
+plot_varimp_xgboost(
+  xgb,
+  JPN = FALSE,
+  top_n = 10L,
+  aggregate = NULL,
+  as_table = FALSE,
+  ...
+)
 }
 \arguments{
 \item{xgb}{xgb.Booster model}
 
-\item{font}{font}
+\item{JPN}{logical. if TRUE renders japanese text}
 
 \item{top_n}{top n important variables}
 
+\item{aggregate}{a character vector. Predictors containing the string will be aggregated, and renamed to that string.}
+
+\item{as_table}{logical, default FALSE. If TRUE returns importances in a data frame}
+
 \item{...}{additional arguments for \code{\link[xgboost]{xgb.ggplot.importance}}}
+
+\item{font}{font}
 }
 \value{
 ggplot

@@ -6,13 +6,13 @@
 #' @param data dataframe
 #' @param formula formula
 #' @param scale logical. If FALSE puts coefficients on original scale
-#' @param font font
 #'
 #' @return a ggplot object
 #' @export
 #' @examples
 #'
 #' iris %>%
+#' framecleaner::create_dummies() %>%
 #' auto_variable_contributions(
 #'  tidy_formula(., target = Petal.Width)
 #'  )
@@ -21,13 +21,14 @@
 #' auto_variable_contributions(
 #' tidy_formula(., target = Species)
 #' )
-auto_variable_contributions <- function(data, formula, scale = TRUE, font = c("", "HiraKakuProN-W3")){
+auto_variable_contributions <- function(data, formula, scale = TRUE){
 
 
-  font <- match.arg(font)
 
   formula %>%
     rlang::f_lhs() -> target
+
+
 
   suppressWarnings({
     rlang::as_name(rlang::ensym(target)) -> trg
@@ -56,7 +57,7 @@ auto_variable_contributions <- function(data, formula, scale = TRUE, font = c(""
 
 
     data %>%
-      tidy_xgboost(formula) -> tcf
+      tidy_xgboost(formula, validate = FALSE) -> tcf
 
 
       xgboost::xgb.importance(model = tcf)   -> tcf_imp
@@ -65,7 +66,6 @@ auto_variable_contributions <- function(data, formula, scale = TRUE, font = c(""
     if(nrow(tcf_imp) > 0){
       tcf_imp %>%
       xgboost::xgb.ggplot.importance() +
-        ggplot2::theme_minimal(base_family= font) +
         ggplot2::theme(panel.border = ggplot2::element_blank(),
               panel.grid.major = ggplot2::element_blank(),
               panel.grid.minor = ggplot2::element_blank(),
@@ -87,7 +87,6 @@ auto_variable_contributions <- function(data, formula, scale = TRUE, font = c(""
 
 
     purrr::possibly(~jtools::plot_coefs(., scale = scale) +
-                      ggplot2::theme_minimal(base_family= font) +
                       ggplot2::theme(panel.border = ggplot2::element_blank(),
                             panel.grid.major = ggplot2::element_blank(),
                             panel.grid.minor = ggplot2::element_blank(),
