@@ -63,3 +63,9 @@ visualize_model.default <- function(model, ..., method){
   summary(model)
 }
 
+
+#' visualize_model.lgb.Booster <- function(model, ..., method){
+#'
+#'   lgb.importance(model, ...) %>%
+#'     lgb.plot.importance()
+#'   }

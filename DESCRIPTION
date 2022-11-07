@@ -1,7 +1,7 @@
 Package: autostats
 Type: Package
 Title: Auto Stats
-Version: 0.3.1
+Version: 0.4.0
 Authors@R: 
     person(given = "Harrison",
            family = "Tietze",
@@ -12,21 +12,22 @@ Description: Automatically do statistical exploration. Create formulas using 'ti
 Encoding: UTF-8
 Imports: dplyr, stringr, tidyselect, purrr, janitor, tibble, rlang,
         stats, rlist, broom, magrittr, ggeasy, ggplot2, jtools, gtools,
-        ggthemes, patchwork, tidyr, xgboost, flextable, parsnip,
-        recipes, rsample, tune, workflows, forcats, framecleaner,
-        presenter, yardstick, dials, readr, lubridate, party,
-        data.table, FOCI, XICOR, agtboost, nnet, recosystem, doParallel
+        ggthemes, patchwork, tidyr, xgboost, parsnip, recipes, rsample,
+        tune, workflows, framecleaner, presenter, yardstick, dials,
+        party, data.table, nnet, recosystem
 RoxygenNote: 7.2.1
 URL: https://harrison4192.github.io/autostats/,
         https://github.com/Harrison4192/autostats
 BugReports: https://github.com/Harrison4192/autostats/issues
-Suggests: knitr, rmarkdown, parallel, igraph, moreparty, broom.mixed,
-        hardhat, glmnet, Ckmeans.1d.dp, ggstance, Matrix, BBmisc
+Suggests: knitr, rmarkdown, forcats, parallel, doParallel, igraph,
+        moreparty, broom.mixed, hardhat, flextable, glmnet,
+        Ckmeans.1d.dp, ggstance, Matrix, BBmisc, XICOR, readr,
+        lubridate
 VignetteBuilder: knitr
 License: MIT + file LICENSE
 NeedsCompilation: no
-Packaged: 2022-08-19 12:47:35 UTC; 81804
+Packaged: 2022-11-07 09:53:03 UTC; 81804
 Author: Harrison Tietze [aut, cre]
 Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2022-08-19 13:10:06 UTC
+Date/Publication: 2022-11-07 10:20:06 UTC

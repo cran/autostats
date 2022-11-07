@@ -62,7 +62,7 @@ tidy_xgboost(
 
 \item{alpha}{[default=0] L1 regularization term on weights. Increasing this value will make model more conservative.}
 
-\item{scale_pos_weight}{[default=1] Control the balance of positive and negative weights, useful for unbalanced classes. if set to TRUE, calculates sum(negative instances) / sum(positive instances)}
+\item{scale_pos_weight}{[default=1] Control the balance of positive and negative weights, useful for unbalanced classes. if set to TRUE, calculates sum(negative instances) / sum(positive instances). If first level is majority class, use values < 1, otherwise normally values >1 are used to balance the class distribution.}
 
 \item{verbosity}{[default=1] Verbosity of printing messages. Valid values are 0 (silent), 1 (warning), 2 (info), 3 (debug).}
 
@@ -76,6 +76,9 @@ Accepts a formula to run an xgboost model. Automatically determines whether the 
 for classification or regression. Returns the xgboost model.
 }
 \details{
+In binary classification the target variable must be a factor with the first level set to the event of interest.
+A higher probability will predict the first level.
+
 reference for parameters: \href{https://xgboost.readthedocs.io/en/stable/parameter.html}{xgboost docs}
 }
 \examples{
@@ -94,12 +97,10 @@ iris_dummy \%>\%
 iris_dummy \%>\%
  tidy_xgboost(
    petal_form,
-   trees = 500,
+   trees = 20,
    mtry = .5
  )  -> xg1
 
-xg1 \%>\%
- visualize_model(top_n = 2)
 
 xg1 \%>\%
  tidy_predict(newdata = iris_dummy, form = petal_form) -> iris_preds
@@ -108,72 +109,6 @@ iris_preds \%>\%
  eval_preds()
 
 
-# binary classification
-# returns probabilty and labels
-
-iris \%>\%
- tidy_formula(Species) -> species_form
-
-iris \%>\%
- dplyr::filter(Species != "versicolor") \%>\%
- dplyr::mutate(Species = forcats::fct_drop(Species)) -> iris_binary
-
-iris_binary \%>\%
- tidy_xgboost(formula = species_form, trees = 50L, mtry = 0.2) -> xgb_bin
-
-xgb_bin \%>\%
- tidy_predict(newdata = iris_binary, form = species_form) -> iris_binary1
-
-iris_binary1 \%>\%
- eval_preds()
-
-
-# multiclass classification that returns labels
-
-
-
-
-iris \%>\%
- tidy_xgboost(species_form,
-              objective = "multi:softmax",
-              trees = 100,
-              tree_depth = 3L,
-              loss_reduction = 0.5) -> xgb2
-
-
-
-xgb2 \%>\%
- tidy_predict(newdata = iris, form = species_form) -> iris_preds
-
-# additional yardstick metrics can be supplied to the dots in eval_preds
-
-iris_preds \%>\%
- eval_preds(yardstick::j_index)
-
-
-# multiclass classification that returns probabilities
-
-
-iris \%>\%
- tidy_xgboost(species_form,
-              objective = "multi:softprob",
-              trees = 50L,
-              sample_size = .2,
-              mtry = .5,
-              tree_depth = 2L,
-              loss_reduction = 3) -> xgb2_prob
-
-# predict on the data that already has the class labels, so the resulting data frame
-# has class and prob predictions
-
-xgb2_prob \%>\%
- tidy_predict(newdata = iris_preds, form = species_form) -> iris_preds1
-
-# also requires the labels in the dataframe to evaluate preds
-# the model name must be supplied as well. Then roc metrics can be calculated
-#iris_preds1 \%>\%
-#  eval_preds( yardstick::average_precision, softprob_model = "xgb2_prob"
-#  )
 
 
 }

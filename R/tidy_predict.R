@@ -40,6 +40,7 @@ tidy_predict.Rcpp_ENSEMBLE <- function(model, newdata, form = NULL, ...){
 
   new_name <- form %>%
     rlang::f_lhs() %>%
+    as.character() %>%
     stringr::str_c("_preds_", model_name)
 
   newdata %>%
@@ -66,6 +67,7 @@ tidy_predict.glm <- function(model, newdata, form = NULL, ...){
 
   new_name <- form %>%
     rlang::f_lhs() %>%
+    as.character() %>%
     stringr::str_c("_preds_", model_name)
 
   newdata %>%
@@ -99,6 +101,7 @@ tidy_predict.default <- function(model, newdata, form = NULL, ...){
     rlang::f_lhs() -> target
 
   new_name <- target %>%
+    as.character() %>%
     stringr::str_c("_preds_", model_name)
 
   newdata %>%
@@ -128,6 +131,7 @@ tidy_predict.BinaryTree <- function(model, newdata, form = NULL, ...){
     rlang::f_lhs() -> target
 
   new_name <- target %>%
+    as.character() %>%
     stringr::str_c("_preds_", model_name)
 
   newdata %>%
@@ -174,6 +178,7 @@ tidy_predict.xgb.Booster <- function(model, newdata, form = NULL, olddata = NULL
   rlang::f_lhs() -> lhs1
 
  lhs1 %>%
+  as.character() %>%
   stringr::str_c("_preds_", model_name) -> new_name
 
 
@@ -181,7 +186,9 @@ tidy_predict.xgb.Booster <- function(model, newdata, form = NULL, olddata = NULL
 
 if(objective == "multi:softmax" ){
 
-  classpred_name <-  lhs1 %>% stringr::str_c("_preds_", "class_", model_name)
+  classpred_name <-  lhs1 %>%
+    as.character() %>%
+    stringr::str_c("_preds_", "class_", model_name)
 
 
   newdata %>%
@@ -225,14 +232,18 @@ if(objective == "multi:softmax" ){
       levels() -> class_levels
 
 
-    prob_pred_name <-  lhs1 %>% stringr::str_c("_preds_", "prob_", model_name)
+    prob_pred_name <-  lhs1 %>%
+      as.character() %>%
+      stringr::str_c("_preds_", "prob_", model_name)
 
 
     newdata %>%
       dplyr::mutate("{prob_pred_name}" := preds) -> newdata1
 
 
-    classpred_name <-  lhs1 %>% stringr::str_c("_preds_", "class_", model_name)
+    classpred_name <-  lhs1 %>%
+      as.character() %>%
+      stringr::str_c("_preds_", "class_", model_name)
 
 
 
@@ -269,3 +280,88 @@ if(objective == "multi:softmax" ){
 }
 
 
+#' @rdname tidy_predict
+#' @method tidy_predict lgb.Booster
+#' @export
+tidy_predict.lgb.Booster <- function(model, newdata, form = NULL, olddata = NULL,  bind_preds = FALSE, ...){
+
+  presenter::get_piped_name() -> model_name
+
+  .ispred <- n <- NULL
+
+  if(is.null(olddata)){
+    olddata <- newdata}
+
+
+  form %>%
+    f_formula_to_charvec(.data = newdata) -> predictors
+
+
+  newdata %>%
+    dplyr::select(tidyselect::all_of(predictors)) -> newdata1
+
+
+  newdata1 %>%
+    as.matrix() -> newdata2
+
+
+
+  predict(model, data = newdata2, ...) -> preds
+
+
+  form %>%
+    rlang::f_lhs() -> lhs1
+
+  lhs1 %>%
+    stringr::str_c("_preds_", model_name) -> new_name
+
+  model$eval_train()[[1]]$name -> objective
+
+  if(objective == "binary_logloss"){
+
+    olddata %>%
+      dplyr::pull(!!rlang::sym(lhs1)) %>%
+      levels() -> class_levels
+
+
+    prob_pred_name <-  lhs1 %>% stringr::str_c("_preds_", "prob_", model_name)
+
+
+    newdata %>%
+      dplyr::mutate("{prob_pred_name}" := preds) -> newdata1
+
+
+    classpred_name <-  lhs1 %>% stringr::str_c("_preds_", "class_", model_name)
+
+
+
+    newdata1 %>%
+      dplyr::mutate("{classpred_name}" := factor(ifelse(preds > .5,
+                                                        class_levels[1], class_levels[2]),
+                                                 levels = class_levels)) -> newdata1
+
+    message("created the following columns: \n", stringr::str_c( prob_pred_name, "\n", classpred_name))
+
+  } else{
+
+    classpred_name <- new_name
+
+
+    newdata %>%
+      dplyr::mutate("{classpred_name}" := preds) -> newdata1
+
+    message(stringr::str_c("created the following column: ", classpred_name))
+
+  }
+
+  if(bind_preds){
+    newdata1 %>%
+      dplyr::rename("{lhs1}" := !!rlang::sym(classpred_name)) %>%
+      dplyr::mutate(.ispred = TRUE) %>%
+      dplyr::bind_rows(olddata %>% dplyr::mutate(.ispred = FALSE)) -> newdata1
+
+  }
+
+  newdata1
+
+}

@@ -3,6 +3,9 @@
 #' Accepts a formula to run an xgboost model. Automatically determines whether the formula is
 #' for classification or regression. Returns the xgboost model.
 #'
+#' In binary classification the target variable must be a factor with the first level set to the event of interest.
+#' A higher probability will predict the first level.
+#'
 #' reference for parameters: \href{https://xgboost.readthedocs.io/en/stable/parameter.html}{xgboost docs}
 #'
 #' @param .data dataframe
@@ -22,7 +25,7 @@
 #' @param num_parallel_tree should be set to the size of the forest being trained. default 1L
 #' @param lambda [default=1] L2 regularization term on weights. Increasing this value will make model more conservative.
 #' @param alpha [default=0] L1 regularization term on weights. Increasing this value will make model more conservative.
-#' @param scale_pos_weight [default=1] Control the balance of positive and negative weights, useful for unbalanced classes. if set to TRUE, calculates sum(negative instances) / sum(positive instances)
+#' @param scale_pos_weight [default=1] Control the balance of positive and negative weights, useful for unbalanced classes. if set to TRUE, calculates sum(negative instances) / sum(positive instances). If first level is majority class, use values < 1, otherwise normally values >1 are used to balance the class distribution.
 #' @param verbosity [default=1] Verbosity of printing messages. Valid values are 0 (silent), 1 (warning), 2 (info), 3 (debug).
 #' @param validate default TRUE. report accuracy metrics on a validation set.
 #'
@@ -45,12 +48,10 @@
 #'iris_dummy %>%
 #'  tidy_xgboost(
 #'    petal_form,
-#'    trees = 500,
+#'    trees = 20,
 #'    mtry = .5
 #'  )  -> xg1
 #'
-#'xg1 %>%
-#'  visualize_model(top_n = 2)
 #'
 #'xg1 %>%
 #'  tidy_predict(newdata = iris_dummy, form = petal_form) -> iris_preds
@@ -59,72 +60,74 @@
 #'  eval_preds()
 #'
 #'
-#'# binary classification
-#'# returns probabilty and labels
-#'
-#'iris %>%
-#'  tidy_formula(Species) -> species_form
-#'
-#'iris %>%
-#'  dplyr::filter(Species != "versicolor") %>%
-#'  dplyr::mutate(Species = forcats::fct_drop(Species)) -> iris_binary
-#'
-#'iris_binary %>%
-#'  tidy_xgboost(formula = species_form, trees = 50L, mtry = 0.2) -> xgb_bin
-#'
-#'xgb_bin %>%
-#'  tidy_predict(newdata = iris_binary, form = species_form) -> iris_binary1
-#'
-#'iris_binary1 %>%
-#'  eval_preds()
-#'
-#'
-#'# multiclass classification that returns labels
-#'
-#'
-#'
-#'
-#'iris %>%
-#'  tidy_xgboost(species_form,
-#'               objective = "multi:softmax",
-#'               trees = 100,
-#'               tree_depth = 3L,
-#'               loss_reduction = 0.5) -> xgb2
-#'
-#'
-#'
-#'xgb2 %>%
-#'  tidy_predict(newdata = iris, form = species_form) -> iris_preds
-#'
-#'# additional yardstick metrics can be supplied to the dots in eval_preds
-#'
-#'iris_preds %>%
-#'  eval_preds(yardstick::j_index)
-#'
-#'
-#'# multiclass classification that returns probabilities
-#'
-#'
-#'iris %>%
-#'  tidy_xgboost(species_form,
-#'               objective = "multi:softprob",
-#'               trees = 50L,
-#'               sample_size = .2,
-#'               mtry = .5,
-#'               tree_depth = 2L,
-#'               loss_reduction = 3) -> xgb2_prob
-#'
-#' # predict on the data that already has the class labels, so the resulting data frame
-#' # has class and prob predictions
-#'
-#'xgb2_prob %>%
-#'  tidy_predict(newdata = iris_preds, form = species_form) -> iris_preds1
-#'
-#'# also requires the labels in the dataframe to evaluate preds
-#'# the model name must be supplied as well. Then roc metrics can be calculated
-#'#iris_preds1 %>%
-#'#  eval_preds( yardstick::average_precision, softprob_model = "xgb2_prob"
-#'#  )
+# # binary classification
+# # returns probability and labels
+# if(FALSE){
+#
+#
+# iris %>%
+#  tidy_formula(Species) -> species_form
+#
+# iris %>%
+#  dplyr::filter(Species != "versicolor") %>%
+#  dplyr::mutate(Species = forcats::fct_drop(Species)) -> iris_binary
+#
+# iris_binary %>%
+#  tidy_xgboost(formula = species_form, trees = 30L, mtry = 0.2) -> xgb_bin
+#
+# xgb_bin %>%
+#  tidy_predict(newdata = iris_binary, form = species_form) -> iris_binary1
+#
+# iris_binary1 %>%
+#  eval_preds()
+#
+#
+# # multiclass classification that returns labels
+#
+#
+#
+#
+# iris %>%
+#  tidy_xgboost(species_form,
+#               objective = "multi:softmax",
+#               trees = 15L,
+#               tree_depth = 3L,
+#               loss_reduction = 0.5) -> xgb2
+#
+#
+#
+# xgb2 %>%
+#  tidy_predict(newdata = iris, form = species_form) -> iris_preds
+#
+# # additional yardstick metrics can be supplied to the dots in eval_preds
+#
+# iris_preds %>%
+#  eval_preds(yardstick::j_index)
+#
+#
+# # multiclass classification that returns probabilities
+#
+#
+# iris %>%
+#  tidy_xgboost(species_form,
+#               objective = "multi:softprob",
+#               trees = 20L,
+#               sample_size = .2,
+#               mtry = .5,
+#               tree_depth = 2L,
+#               loss_reduction = 3) -> xgb2_prob
+#
+# # predict on the data that already has the class labels, so the resulting data frame
+# # has class and prob predictions
+#
+# xgb2_prob %>%
+#  tidy_predict(newdata = iris_preds, form = species_form) -> iris_preds1
+#
+# # also requires the labels in the dataframe to evaluate preds
+# # the model name must be supplied as well. Then roc metrics can be calculated
+# #iris_preds1 %>%
+# #  eval_preds( yardstick::average_precision, softprob_model = "xgb2_prob"
+# #  )}
 #'
 #'
 tidy_xgboost <- function(.data, formula, ...,
@@ -159,13 +162,20 @@ tidy_xgboost <- function(.data, formula, ...,
     dplyr::pull(!!target) %>%
     is.numeric() -> numer_tg
 
+  .data %>%
+    dplyr::pull(!!target) %>%
+    is.character() -> chr_tg
+
 if(isTRUE(scale_pos_weight)){
   .data %>%
-    dplyr::count(!!target, sort = TRUE) %>%
+    dplyr::count(!!target) %>%
     dplyr::pull(n) -> classcounts
 
-  scale_pos_weight <- classcounts[1] / classcounts[2]
+  scale_pos_weight <- classcounts[2] / classcounts[1]
 }
+
+
+
 
   xgboost_recipe <-
     recipes::recipe(data = .data, formula = formula)
@@ -206,8 +216,15 @@ if(isTRUE(scale_pos_weight)){
   } else{
     mode_set <- "classification"
 
+if(chr_tg){
+
+  message("classification requires target to be a factor with the first level as the event class")
+  stop()
+}
+
+
     .data %>%
-      dplyr::mutate(!!target := as.factor(!!target) %>% forcats::fct_drop()) -> .data
+      dplyr::mutate(!!target := !!target) -> .data
 
 
     xgboost_spec0 %>%
@@ -245,15 +262,93 @@ if(isTRUE(scale_pos_weight)){
     val_fit %>%
       workflows::pull_workflow_fit() %>%
       purrr::pluck("fit") -> val_booster
+
 suppressMessages({
     val_booster %>%
       tidy_predict(newdata = analysis_set, form = formula) -> val_frame
-})
-model <- NULL
 
+})
+
+model <- .estimate <- .estimator <- .metric <-  NULL
+
+  if(mode_set == "regression"){
     val_frame %>%
       eval_preds() %>%
-      dplyr::select(-model) -> val_acc
+      dplyr::select(.metric, .estimate) -> val_acc
+
+  }
+
+
+    else if(xgb_obj == "binary:logistic"){
+
+      val_frame %>%
+        eval_preds() %>%
+        dplyr::select(.metric, .estimate) %>%
+        dplyr::filter(.metric == "roc_auc") -> val_acc
+
+      val_frame %>%
+        yardstick::conf_mat(truth = !!target
+                            , estimate = -1) -> val_conf
+
+      val_frame %>%
+        dplyr::count(!!target, sort = T) %>%
+        dplyr::pull(n) -> target_counts
+
+      val_frame %>%
+        dplyr::count(!!target, sort = T) %>%
+        dplyr::slice(1) %>%
+        dplyr::pull(1) -> majority_class
+
+
+      val_frame %>%
+        yardstick::conf_mat(truth = !!target, estimate = -1) -> val_conf_mat
+
+      val_conf_mat %>%
+        summary %>%
+        dplyr::select(-.estimator) %>%
+        dplyr::mutate(.formula = c("TP + TN / total",
+                            NA,
+                            "TP / actually P",
+                            "TN / actually N",
+                            "TP / predicted P",
+                            "TN / predicted N",
+                            NA,
+                            NA,
+                            "sens + spec / 2",
+                            "predicted P / total",
+                            "PPV, 1-FDR",
+                            "sens, TPR",
+                            "HM(ppv, sens)")) -> val_conf_tbl
+
+      print(ggplot2::autoplot(val_conf_mat, type = "heatmap"))
+
+      event_prop <- target_counts[1] / (target_counts[1] + target_counts[2])
+
+      tibble::tibble(.metric = "baseline_accuracy",
+                     .estimate = event_prop,
+                     .formula = "majority class / total") -> baseline_acc
+
+      val_conf_tbl %>%
+        dplyr::bind_rows(baseline_acc, val_acc)-> val_acc
+    }
+
+else if(xgb_obj == "multi:softmax"){
+
+
+
+
+  val_frame %>%
+    yardstick::conf_mat(truth = !!target, estimate = -1) -> val_conf_mat
+
+  val_conf_mat %>%
+    summary %>%
+    dplyr::select(-.estimator) -> val_acc
+
+  print(ggplot2::autoplot(val_conf_mat, type = "heatmap"))
+
+
+}
+
 
     message("accuracy tested on a validation set")
 
@@ -282,14 +377,17 @@ xgbooster
 #' @param top_n top n important variables
 #' @param aggregate a character vector. Predictors containing the string will be aggregated, and renamed to that string.
 #' @param as_table logical, default FALSE. If TRUE returns importances in a data frame
+#' @param measure choose between Gain, Cover, or Frequency for xgboost importance measure
 #' @param ... additional arguments for \code{\link[xgboost]{xgb.ggplot.importance}}
 #' @keywords internal
 #'
 #' @return ggplot
 #'
-plot_varimp_xgboost <- function(xgb,  top_n = 10L, aggregate = NULL, as_table = FALSE, ...){
+plot_varimp_xgboost <- function(xgb,  top_n = 10L, aggregate = NULL, as_table = FALSE, measure = c("Gain", "Cover", "Frequency"), ...){
 
   agg <- Feature <- NULL
+
+  measure <- match.arg(measure)
 
   xgb$feature_names -> f1
 
@@ -324,14 +422,14 @@ plot_varimp_xgboost <- function(xgb,  top_n = 10L, aggregate = NULL, as_table = 
 
 
   xgb_imp %>%
-    xgboost::xgb.ggplot.importance(..., top_n = top_n) +
+    xgboost::xgb.ggplot.importance(..., measure = measure, top_n = top_n) +
     ggplot2::theme_minimal() +
     ggplot2::theme(panel.border = ggplot2::element_blank(),
                    panel.grid.major = ggplot2::element_blank(),
                    panel.grid.minor = ggplot2::element_blank(),
                    axis.line = ggplot2::element_line(colour = "black"))+
     ggeasy::easy_remove_legend() +
-    ggplot2::ylab("Importance from xgboost") -> xgb_plot
+    ggplot2::ylab(stringr::str_c("Importance from xgboost ", measure)) -> xgb_plot
 
   if(as_table){
 

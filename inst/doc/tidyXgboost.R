@@ -66,8 +66,6 @@ iris_split
 iris_train %>%
   tidy_xgboost(formula = petal_form) -> xgb_base
 
-xgb_base %>% 
-  visualize_model()
 
 ## -----------------------------------------------------------------------------
 iris_train %>% 
@@ -78,12 +76,6 @@ iris_train %>%
                mtry = .5,
                min_n = 2) -> xgb_opt
 
-xgb_opt %>% 
-  visualize_model()
-
-## -----------------------------------------------------------------------------
-iris_train %>% 
-  tidy_agtboost(petal_form) -> agtb
 
 
 ## -----------------------------------------------------------------------------
@@ -94,14 +86,12 @@ xgb_base %>%
 xgb_opt %>% 
   tidy_predict(newdata = iris_val2, petal_form) -> iris_val3
 
-agtb %>% 
-    tidy_predict(newdata = iris_val3, petal_form)-> iris_val4
 
-iris_val4 %>% 
+iris_val3 %>% 
   names()
 
 ## -----------------------------------------------------------------------------
-iris_val4 %>% 
+iris_val3 %>% 
   eval_preds() 
 
 ## -----------------------------------------------------------------------------
